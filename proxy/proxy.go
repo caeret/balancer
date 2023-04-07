@@ -6,13 +6,13 @@ package proxy
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"sync"
 
-	"github.com/zehuamama/balancer/balancer"
+	"github.com/caeret/balancer/balancer"
+	"github.com/caeret/balancer/log"
 )
 
 var (
@@ -32,10 +32,12 @@ type HTTPProxy struct {
 
 	sync.RWMutex // protect alive
 	alive        map[string]bool
+
+	logger log.Logger
 }
 
 // NewHTTPProxy create  new reverse proxy with url and balancer algorithm
-func NewHTTPProxy(targetHosts []string, algorithm string) (
+func NewHTTPProxy(targetHosts []string, algorithm string, logger log.Logger) (
 	*HTTPProxy, error) {
 
 	hosts := make([]string, 0)
@@ -70,6 +72,8 @@ func NewHTTPProxy(targetHosts []string, algorithm string) (
 		hostMap: hostMap,
 		lb:      lb,
 		alive:   alive,
+
+		logger: logger,
 	}, nil
 }
 
@@ -77,7 +81,7 @@ func NewHTTPProxy(targetHosts []string, algorithm string) (
 func (h *HTTPProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("proxy causes panic :%s", err)
+			h.logger.Printf("proxy causes panic :%s", err)
 			w.WriteHeader(http.StatusBadGateway)
 			_, _ = w.Write([]byte(err.(error).Error()))
 		}

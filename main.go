@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/caeret/balancer/proxy"
 	"github.com/gorilla/mux"
-	"github.com/zehuamama/balancer/proxy"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 
 	router := mux.NewRouter()
 	for _, l := range config.Location {
-		httpProxy, err := proxy.NewHTTPProxy(l.ProxyPass, l.BalanceMode)
+		httpProxy, err := proxy.NewHTTPProxy(l.ProxyPass, l.BalanceMode, log.Default())
 		if err != nil {
 			log.Fatalf("create proxy error: %s", err)
 		}
